@@ -1,0 +1,27 @@
+# Gradle i Build
+.gradle/
+/build/
+/*/build/
+bin/
+
+# Konfiguracja lokalna i hasła
+local.properties
+secrets.properties
+
+# IDE (Android Studio / IntelliJ)
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Logi i pliki tymczasowe
+*.log
+/captures/
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
+
+# NDK
+.externalNativeBuild/
+.cxx/
