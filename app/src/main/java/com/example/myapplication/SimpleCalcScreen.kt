@@ -1,7 +1,6 @@
 package com.example.myapplication
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,15 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -33,8 +31,8 @@ import net.objecthunter.exp4j.ExpressionBuilder
 fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    var currentInput by remember { mutableStateOf("") }
-    var historyText by remember { mutableStateOf("") }
+    var currentInput by rememberSaveable { mutableStateOf("") }
+    var historyText by rememberSaveable { mutableStateOf("") }
 
     val handleButtonClick = remember {
         { label: String ->
@@ -54,6 +52,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                             currentInput = ""
                         } catch (e: Exception) {
                             currentInput = "Błąd"
+                            historyText = ""
                         }
                     } else if (currentInput.isNotEmpty()) {
                         historyText = "$currentInput $label "
@@ -100,8 +99,9 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
         if (isLandscape) {
             val buttons = listOf("7", "8", "9", "C/CE", "AC", "4", "5", "6", "*", "/", "1", "2", "3", "+", "-", "0", "00", ".", "+/-", "=")
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalAlignment = Alignment.CenterVertically
+
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
@@ -110,9 +110,9 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                ResultDisplay(currentInput,historyText, modifier = Modifier.weight(1f), true)
+                ResultDisplay(currentInput, historyText, orientation = true)
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(3f)) {
                 CalculatorGrid(buttons, true, handleButtonClick)
             }
@@ -130,9 +130,9 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                     )
                 }
             }
-            ResultDisplay(currentInput,historyText, modifier = Modifier.weight(1f), false)
-            Spacer(modifier = Modifier.height(30.dp))
-            Box(modifier = Modifier.wrapContentHeight()) {
+            ResultDisplay(currentInput, historyText, modifier = Modifier.weight(1f), false)
+            Spacer(modifier = Modifier.height(16.dp)) 
+            Box(modifier = Modifier.weight(4f)) {
                 CalculatorGrid(buttons, false, handleButtonClick)
             }
         }

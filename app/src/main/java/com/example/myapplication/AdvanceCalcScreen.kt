@@ -25,6 +25,6 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
         horizontalAlignment = Alignment.CenterHorizontally,
 
         ) {
-        Text(text= "MEGA ZAAWANSOWANY KALTULATOR KURWA POJEBANY CAŁKE CI POLICZY XDD")
+        Text(text= "MEGA ZAAWANSOWANY KALTULATOR CAŁKE CI POLICZY")
     }
 }
