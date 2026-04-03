@@ -52,7 +52,8 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                             val fullExpression = historyText + currentInput
                             val expression = Expression(fullExpression)
                             val result = expression.evaluate().numberValue
-                            val intermediateResult = result.stripTrailingZeros().toPlainString()
+                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            val intermediateResult = roundedResult.stripTrailingZeros().toPlainString()
 
                             historyText = "$intermediateResult $label "
                             currentInput = ""
@@ -83,7 +84,8 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         try {
                             val expression = Expression(fullExpression)
                             val result = expression.evaluate().numberValue
-                            currentInput = result.stripTrailingZeros().toPlainString()
+                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            currentInput = roundedResult.stripTrailingZeros().toPlainString()
                             historyText = ""
                         } catch (_: Exception) {
                             currentInput = "Błąd"
@@ -127,7 +129,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                 ResultDisplay(currentInput, historyText, orientation = true)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Box(modifier = Modifier.weight(3f)) {
+            Box(modifier = Modifier.weight(2f)) {
                 CalculatorGrid(buttons, true, handleButtonClick)
             }
         } else {
@@ -140,7 +142,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Powrót",
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp).padding(bottom = 8.dp)
                     )
                 }
             }

@@ -32,7 +32,7 @@ fun ResultDisplay(result: String, history: String, modifier: Modifier = Modifier
         scrollState.animateScrollTo(scrollState.maxValue)
     }
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
@@ -40,14 +40,14 @@ fun ResultDisplay(result: String, history: String, modifier: Modifier = Modifier
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(horizontal = 24.dp, vertical = if (orientation) 8.dp else 20.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Top
         ) {
             Text(
                 text = history,
                 color = Color.Gray,
-                fontSize = if (orientation) 10.sp else 24.sp,
+                fontSize = if (orientation) 16.sp else 24.sp,
                 textAlign = TextAlign.End,
                 maxLines = 1,
                 softWrap = false
@@ -57,13 +57,13 @@ fun ResultDisplay(result: String, history: String, modifier: Modifier = Modifier
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = 24.dp, vertical = if (orientation) 8.dp else 16.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = result.ifEmpty { "0" },
-                fontSize = if (orientation) 20.sp else 48.sp,
+                fontSize = if (orientation) 36.sp else 48.sp,
                 textAlign = TextAlign.End,
                 maxLines = 1,
                 softWrap = false,
