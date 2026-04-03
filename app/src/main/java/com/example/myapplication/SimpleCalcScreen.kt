@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
 import com.ezylang.evalex.Expression
 
@@ -34,6 +35,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     var currentInput by rememberSaveable { mutableStateOf("") }
     var historyText by rememberSaveable { mutableStateOf("") }
+    var lastCeClickTime by rememberSaveable { mutableLongStateOf(0L) }
 
     val handleButtonClick = remember {
         { label: String ->
@@ -77,7 +79,16 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         currentInput = "-$currentInput"
                     }
                 }
-                "C/CE" -> if (currentInput.isNotEmpty()) currentInput = currentInput.dropLast(1)
+                "C/CE" -> {
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastCeClickTime < 300) {
+                        currentInput = ""
+                        lastCeClickTime = 0L
+                    } else {
+                        if (currentInput.isNotEmpty()) currentInput = currentInput.dropLast(1)
+                        lastCeClickTime = currentTime
+                    }
+                }
                 "=" -> {
                     if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
                         val fullExpression = historyText + currentInput
