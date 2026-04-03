@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import net.objecthunter.exp4j.ExpressionBuilder
+import com.ezylang.evalex.Expression
+
 @Composable
 fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
     val configuration = LocalConfiguration.current
@@ -36,7 +37,11 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
 
     val handleButtonClick = remember {
         { label: String ->
+            if (currentInput == "Błąd" && label != "AC") {
+                currentInput = ""
+            }
             when (label) {
+
                 "AC" -> {
                     currentInput = ""
                     historyText = ""
@@ -45,12 +50,13 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                     if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
                         try {
                             val fullExpression = historyText + currentInput
-                            val eval = ExpressionBuilder(fullExpression).build()
-                            val intermediateResult = eval.evaluate().toString().removeSuffix(".0")
+                            val expression = Expression(fullExpression)
+                            val result = expression.evaluate().numberValue
+                            val intermediateResult = result.stripTrailingZeros().toPlainString()
 
                             historyText = "$intermediateResult $label "
                             currentInput = ""
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             currentInput = "Błąd"
                             historyText = ""
                         }
@@ -62,14 +68,12 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                     }
                 }
                 "+/-" -> {
-                    val numericValue = currentInput.toDoubleOrNull()
-                    if (numericValue != null && numericValue != 0.0) {
-                        currentInput = if (currentInput.startsWith("-")) {
-                            currentInput.removePrefix("-")
-                        }
-                        else {
-                            "-$currentInput"
-                        }
+                    if (currentInput.isEmpty()) {
+                        currentInput = "-"
+                    } else if (currentInput.startsWith("-")) {
+                        currentInput = currentInput.removePrefix("-")
+                    } else if (currentInput != "0") {
+                        currentInput = "-$currentInput"
                     }
                 }
                 "C/CE" -> if (currentInput.isNotEmpty()) currentInput = currentInput.dropLast(1)
@@ -77,16 +81,26 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                     if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
                         val fullExpression = historyText + currentInput
                         try {
-                            val eval = ExpressionBuilder(fullExpression).build()
-                            val result = eval.evaluate()
-                            currentInput = result.toString().removeSuffix(".0")
+                            val expression = Expression(fullExpression)
+                            val result = expression.evaluate().numberValue
+                            currentInput = result.stripTrailingZeros().toPlainString()
                             historyText = ""
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             currentInput = "Błąd"
                         }
                     }
                 }
-                else -> currentInput += label
+                "." -> if (!currentInput.contains(".")) currentInput += "."
+                "0" -> if (currentInput != "0") currentInput += "0"
+                "00" -> if (currentInput.isEmpty()) currentInput = "0" else if (currentInput != "0") currentInput += "00"
+                else -> {
+                    if (currentInput == "0") {
+                        currentInput = label
+                    } else {
+                        currentInput += label
+                    }
+                }
+//                else -> currentInput += label
             }
         }
     }

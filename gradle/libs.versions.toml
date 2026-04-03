@@ -9,7 +9,7 @@ activityCompose = "1.13.0"
 kotlin = "2.3.20"
 composeBom = "2026.03.01"
 navigationCompose = "2.9.7"
-exp4j = "0.4.8"
+evalex = "3.6.0"
 runtime = "1.10.6"
 
 [libraries]
@@ -28,9 +28,9 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-exp4j = { group = "net.objecthunter", name = "exp4j", version.ref = "exp4j" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+evalex = { group = "com.ezylang", name = "EvalEx", version.ref = "evalex" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
