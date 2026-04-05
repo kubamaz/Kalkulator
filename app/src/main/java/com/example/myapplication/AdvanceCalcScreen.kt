@@ -49,6 +49,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                     historyText = ""
                 }
                 "+", "-", "*", "/", "x^y" -> {
+                    if (historyText.endsWith("=")) historyText = ""
                     val operator = if (label == "x^y") "^" else label
                     if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
                         try {
@@ -74,6 +75,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                 "sin", "cos", "tan", "ln", "log", "sqrt", "x^2", "%" -> {
                     if (currentInput.isNotEmpty()) {
                         try {
+                            val originalInput = currentInput
                             val evalString = when (label) {
                                 "sin" -> "SIN($currentInput)"
                                 "cos" -> "COS($currentInput)"
@@ -88,6 +90,8 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             val expression = Expression(evalString)
                             val result = expression.evaluate().numberValue
                             val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+
+                            historyText = if (label == "x^2") "$originalInput^2 =" else "$label($originalInput) ="
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
                         } catch (_: Exception) {
                             currentInput = "Błąd"
@@ -114,6 +118,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                     }
                 }
                 "=" -> {
+                    if (historyText.endsWith("=")) historyText = ""
                     if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
                         val fullExpression = historyText + currentInput
                         try {
@@ -128,7 +133,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                     }
                 }
                 "." -> if (!currentInput.contains(".")) {
-                    currentInput += if (currentInput.isEmpty()) {
+                    currentInput += if (currentInput.isEmpty() || currentInput == "-") {
                         "0."
                     } else {
                         "."
@@ -138,6 +143,10 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                 "0" -> if (currentInput != "0") currentInput += "0"
                 "00" -> if (currentInput.isEmpty()) currentInput = "0" else if (currentInput != "0") currentInput += "00"
                 else -> {
+                    if (historyText.endsWith("=")) {
+                        historyText = ""
+                        currentInput = ""
+                    }
                     if (currentInput == "0") {
                         currentInput = label
                     } else {
