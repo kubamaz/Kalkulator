@@ -103,7 +103,14 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         }
                     }
                 }
-                "." -> if (!currentInput.contains(".")) currentInput += "."
+                "." -> if (!currentInput.contains(".")) {
+                    currentInput += if (currentInput.isEmpty()) {
+                        "0."
+                    } else {
+                        "."
+                    }
+
+                }
                 "0" -> if (currentInput != "0") currentInput += "0"
                 "00" -> if (currentInput.isEmpty()) currentInput = "0" else if (currentInput != "0") currentInput += "00"
                 else -> {
@@ -113,7 +120,6 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         currentInput += label
                     }
                 }
-//                else -> currentInput += label
             }
         }
     }
@@ -141,7 +147,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(2f)) {
-                CalculatorGrid(buttons, true, handleButtonClick)
+                CalculatorGrid(buttons, columns = 5, onButtonClick = handleButtonClick)
             }
         } else {
             val buttons = listOf("AC", "C/CE", "+/-", "/", "7", "8", "9", "*", "4", "5", "6", "-", "1", "2", "3", "+", "0","00", ".", "=")
@@ -160,7 +166,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
             ResultDisplay(currentInput, historyText, modifier = Modifier.weight(1f), false)
             Spacer(modifier = Modifier.height(16.dp)) 
             Box(modifier = Modifier.weight(4f)) {
-                CalculatorGrid(buttons, false, handleButtonClick)
+                CalculatorGrid(buttons, columns= 4, handleButtonClick)
             }
         }
     }

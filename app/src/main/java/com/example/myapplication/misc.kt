@@ -74,8 +74,7 @@ fun ResultDisplay(result: String, history: String, modifier: Modifier = Modifier
 }
 
 @Composable
-fun CalculatorGrid(buttons: List<String>, orientation: Boolean, onButtonClick: (String) -> Unit) {
-    val columns = if (orientation) 5 else 4
+fun CalculatorGrid(buttons: List<String>, columns: Int, onButtonClick: (String) -> Unit) {
     val rows = buttons.chunked(columns)
 
     Column(
