@@ -48,7 +48,8 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                     currentInput = ""
                     historyText = ""
                 }
-                "+", "-", "*", "/" -> {
+                "+", "-", "*", "/", "x^y" -> {
+                    val operator = if (label == "x^y") "^" else label
                     if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
                         try {
                             val fullExpression = historyText + currentInput
@@ -57,17 +58,40 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
                             val intermediateResult = roundedResult.stripTrailingZeros().toPlainString()
 
-                            historyText = "$intermediateResult $label "
+                            historyText = "$intermediateResult $operator "
                             currentInput = ""
                         } catch (_: Exception) {
                             currentInput = "Błąd"
                             historyText = ""
                         }
                     } else if (currentInput.isNotEmpty()) {
-                        historyText = "$currentInput $label "
+                        historyText = "$currentInput $operator "
                         currentInput = ""
                     } else if (historyText.isNotEmpty()) {
-                        historyText = historyText.dropLast(3) + " $label "
+                        historyText = historyText.dropLast(3) + " $operator "
+                    }
+                }
+                "sin", "cos", "tan", "ln", "log", "sqrt", "x^2", "%" -> {
+                    if (currentInput.isNotEmpty()) {
+                        try {
+                            val evalString = when (label) {
+                                "sin" -> "SIN($currentInput)"
+                                "cos" -> "COS($currentInput)"
+                                "tan" -> "TAN($currentInput)"
+                                "ln" -> "LOG($currentInput)"
+                                "log" -> "LOG10($currentInput)"
+                                "sqrt" -> "SQRT($currentInput)"
+                                "x^2" -> "($currentInput)^2"
+                                "%" -> "($currentInput)/100"
+                                else -> currentInput
+                            }
+                            val expression = Expression(evalString)
+                            val result = expression.evaluate().numberValue
+                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            currentInput = roundedResult.stripTrailingZeros().toPlainString()
+                        } catch (_: Exception) {
+                            currentInput = "Błąd"
+                        }
                     }
                 }
                 "+/-" -> {
