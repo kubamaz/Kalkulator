@@ -4,4 +4,6 @@
     <string name="advance">Advance Calc</string>
     <string name="about">About</string>
     <string name="exit">Exit</string>
+    <string name="error">Error</string>
+    <string name="Back">Back</string>
 </resources>

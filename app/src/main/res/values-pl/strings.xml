@@ -5,4 +5,6 @@
     <string name="advance">Zaawansowany kalkulator</string>
     <string name="about">O aplikacji</string>
     <string name="exit">Wyjście</string>
+    <string name="error">Błąd</string>
+    <string name="Back">Powrót</string>
 </resources>

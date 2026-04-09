@@ -11,6 +11,7 @@ composeBom = "2026.03.01"
 navigationCompose = "2.9.7"
 evalex = "3.6.0"
 runtime = "1.10.6"
+foundation = "1.10.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,6 +32,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 evalex = { group = "com.ezylang", name = "EvalEx", version.ref = "evalex" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
