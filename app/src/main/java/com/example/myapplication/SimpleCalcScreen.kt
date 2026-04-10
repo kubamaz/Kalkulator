@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import com.ezylang.evalex.Expression
 
 @Composable
@@ -37,10 +38,12 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
     var historyText by rememberSaveable { mutableStateOf("") }
     var lastCeClickTime by rememberSaveable { mutableLongStateOf(0L) }
 
+    val errorText = stringResource(id = R.string.error)
     val handleButtonClick = remember {
         { label: String ->
-            if (currentInput == "Błąd" && label != "AC") {
+            if (currentInput == errorText && label != "AC") {
                 currentInput = ""
+                historyText = ""
             }
             when (label) {
 
@@ -60,7 +63,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                             historyText = "$intermediateResult $label "
                             currentInput = ""
                         } catch (_: Exception) {
-                            currentInput = "Błąd"
+                            currentInput = errorText
                             historyText = ""
                         }
                     } else if (currentInput.isNotEmpty()) {
@@ -99,7 +102,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
                             historyText = ""
                         } catch (_: Exception) {
-                            currentInput = "Błąd"
+                            currentInput = errorText
                         }
                     }
                 }
@@ -139,7 +142,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Powrót",
+                        contentDescription = stringResource(id = R.string.Back),
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -158,7 +161,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Powrót",
+                        contentDescription = stringResource(id = R.string.Back),
                         modifier = Modifier.size(32.dp).padding(bottom = 8.dp)
                     )
                 }

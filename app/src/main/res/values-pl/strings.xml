@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kalkulator</string>
+    <string name="app_name">UniCalc</string>
     <string name="simple">"Prosty kalkulator "</string>
     <string name="advance">Zaawansowany kalkulator</string>
     <string name="about">O aplikacji</string>

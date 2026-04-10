@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.ezylang.evalex.Expression
@@ -36,11 +37,15 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     var currentInput by rememberSaveable { mutableStateOf("") }
     var historyText by rememberSaveable { mutableStateOf("") }
+
     var lastCeClickTime by rememberSaveable { mutableLongStateOf(0L) }
+    val errorText = stringResource(id = R.string.error)
+
     val handleButtonClick = remember {
         { label: String ->
-            if (currentInput == "Błąd" && label != "AC") {
+            if (currentInput == errorText && label != "AC") {
                 currentInput = ""
+                historyText = ""
             }
             when (label) {
 
@@ -62,7 +67,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             historyText = "$intermediateResult $operator "
                             currentInput = ""
                         } catch (_: Exception) {
-                            currentInput = "Błąd"
+                            currentInput = errorText
                             historyText = ""
                         }
                     } else if (currentInput.isNotEmpty()) {
@@ -94,7 +99,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             historyText = if (label == "x^2") "$originalInput^2 =" else "$label($originalInput) ="
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
                         } catch (_: Exception) {
-                            currentInput = "Błąd"
+                            currentInput = errorText
                         }
                     }
                 }
@@ -128,7 +133,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
                             historyText = ""
                         } catch (_: Exception) {
-                            currentInput = "Błąd"
+                            currentInput = errorText
                         }
                     }
                 }
@@ -172,7 +177,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Powrót",
+                        contentDescription = stringResource(id = R.string.Back),
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -191,7 +196,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Powrót",
+                        contentDescription = stringResource(id = R.string.Back),
                         modifier = Modifier.size(32.dp).padding(bottom = 8.dp)
                     )
                 }

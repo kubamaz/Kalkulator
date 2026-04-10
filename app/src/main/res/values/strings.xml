@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Calculator</string>
+    <string name="app_name">UniCalc</string>
     <string name="simple">Simple Calc</string>
     <string name="advance">Advance Calc</string>
     <string name="about">About</string>
