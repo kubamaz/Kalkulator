@@ -61,7 +61,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             val fullExpression = historyText + currentInput
                             val expression = Expression(fullExpression)
                             val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            val roundedResult = result.setScale(20, java.math.RoundingMode.HALF_UP)
                             val intermediateResult = roundedResult.stripTrailingZeros().toPlainString()
 
                             historyText = "$intermediateResult $operator "
@@ -94,7 +94,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                             }
                             val expression = Expression(evalString)
                             val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            val roundedResult = result.setScale(20, java.math.RoundingMode.HALF_UP)
 
                             historyText = if (label == "x^2") "$originalInput^2 =" else "$label($originalInput) ="
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
@@ -129,7 +129,7 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                         try {
                             val expression = Expression(fullExpression)
                             val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            val roundedResult = result.setScale(20, java.math.RoundingMode.HALF_UP)
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
                             historyText = ""
                         } catch (_: Exception) {

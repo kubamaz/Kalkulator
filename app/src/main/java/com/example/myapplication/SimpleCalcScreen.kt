@@ -57,7 +57,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                             val fullExpression = historyText + currentInput
                             val expression = Expression(fullExpression)
                             val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            val roundedResult = result.setScale(12, java.math.RoundingMode.HALF_UP)
                             val intermediateResult = roundedResult.stripTrailingZeros().toPlainString()
 
                             historyText = "$intermediateResult $label "
@@ -98,7 +98,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         try {
                             val expression = Expression(fullExpression)
                             val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(8, java.math.RoundingMode.HALF_UP)
+                            val roundedResult = result.setScale(12, java.math.RoundingMode.HALF_UP)
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
                             historyText = ""
                         } catch (_: Exception) {
