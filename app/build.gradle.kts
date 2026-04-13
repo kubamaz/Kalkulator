@@ -1,7 +1,6 @@
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.provider.ListProperty
-import java.io.ByteArrayOutputStream
 
 plugins {
     alias(libs.plugins.android.application)
@@ -21,7 +20,7 @@ abstract class GitValueSource : ValueSource<String, GitParameters> {
             val output = process.inputStream.bufferedReader().readText().trim()
             process.waitFor()
             if (process.exitValue() == 0 && output.isNotEmpty()) output else null
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
