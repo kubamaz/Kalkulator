@@ -9,4 +9,5 @@
     <string name="Back">Powrót</string>
     <string name="author">Autor: Jakub Wójcik</string>
     <string name="desc">Zaawansowany kalkulator akademicki do szybkich obliczeń na studia.</string>
+    <string name="version">"Wersja: "</string>
 </resources>

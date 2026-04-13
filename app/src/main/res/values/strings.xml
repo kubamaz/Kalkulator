@@ -8,4 +8,5 @@
     <string name="Back">Back</string>
     <string name="author">Author: Jakub Wójcik</string>
     <string name="desc">Advanced academic calculator for quick university calculations.</string>
+    <string name="version">Version:</string>
 </resources>

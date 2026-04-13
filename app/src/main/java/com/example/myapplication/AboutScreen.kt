@@ -65,9 +65,13 @@ fun AboutScreen(navController: NavController, padding: PaddingValues) {
             Text(
                 text = stringResource(id = R.string.author),
                 fontSize = 20.sp,
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-
+            Text(
+                text = stringResource(id = R.string.version) + BuildConfig.VERSION_NAME,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 18.dp)
+            )
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp),
@@ -82,6 +86,7 @@ fun AboutScreen(navController: NavController, padding: PaddingValues) {
                     fontSize = 18.sp,
                     textAlign = TextAlign.Center
                 )
+
             }
         }
     }
