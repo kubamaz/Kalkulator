@@ -17,7 +17,6 @@ abstract class GitValueSource : ValueSource<String, GitParameters> {
     override fun obtain(): String? {
         return try {
             val args = parameters.arguments.get()
-            // ProcessBuilder jest bezpieczny i stabilny
             val process = ProcessBuilder(args).start()
             val output = process.inputStream.bufferedReader().readText().trim()
             process.waitFor()
@@ -28,7 +27,6 @@ abstract class GitValueSource : ValueSource<String, GitParameters> {
     }
 }
 
-// 3. Funkcje wywołujące (pamiętaj o przekazaniu project)
 fun getGitVersionName(project: Project): String {
     return project.providers.of(GitValueSource::class.java) {
         parameters.arguments.set(listOf("git", "describe", "--tags", "--abbrev=0"))
