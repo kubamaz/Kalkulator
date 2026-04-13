@@ -1,7 +1,6 @@
 package com.example.myapplication
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -109,7 +108,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
 
                                         val percentOfA = a.multiply(b).divide(java.math.BigDecimal("100"))
                                         replacementValue = percentOfA.stripTrailingZeros().toPlainString()
-                                    } catch (e: Exception) {
+                                    } catch (_: Exception) {
                                         replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
                                     }
                                 } else {

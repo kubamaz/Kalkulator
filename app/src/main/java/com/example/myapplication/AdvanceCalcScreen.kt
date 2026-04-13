@@ -33,84 +33,25 @@ import com.ezylang.evalex.Expression
 
 @Composable
 fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    var currentInput by rememberSaveable { mutableStateOf("") }
-    var historyText by rememberSaveable { mutableStateOf("") }
+ val configuration = LocalConfiguration.current
+ val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+ var currentInput by rememberSaveable { mutableStateOf("") }
+ var historyText by rememberSaveable { mutableStateOf("") }
+ var lastCeClickTime by rememberSaveable { mutableLongStateOf(0L) }
+ var isShowingResult by rememberSaveable { mutableStateOf(false) }
 
-    var lastCeClickTime by rememberSaveable { mutableLongStateOf(0L) }
-    val errorText = stringResource(id = R.string.error)
-
-    val handleButtonClick = remember {
+ val errorText = stringResource(id = R.string.error)
+ val newHandleButtonClick = remember {
         { label: String ->
             if (currentInput == errorText && label != "AC") {
                 currentInput = ""
                 historyText = ""
             }
             when (label) {
-
                 "AC" -> {
                     currentInput = ""
                     historyText = ""
-                }
-                "+", "-", "*", "/", "x^y" -> {
-                    if (historyText.endsWith("=")) historyText = ""
-                    val operator = if (label == "x^y") "^" else label
-                    if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
-                        try {
-                            val fullExpression = historyText + currentInput
-                            val expression = Expression(fullExpression)
-                            val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(20, java.math.RoundingMode.HALF_UP)
-                            val intermediateResult = roundedResult.stripTrailingZeros().toPlainString()
-
-                            historyText = "$intermediateResult $operator "
-                            currentInput = ""
-                        } catch (_: Exception) {
-                            currentInput = errorText
-                            historyText = ""
-                        }
-                    } else if (currentInput.isNotEmpty()) {
-                        historyText = "$currentInput $operator "
-                        currentInput = ""
-                    } else if (historyText.isNotEmpty()) {
-                        historyText = historyText.dropLast(3) + " $operator "
-                    }
-                }
-                "sin", "cos", "tan", "ln", "log", "sqrt", "x^2", "%" -> {
-                    if (currentInput.isNotEmpty()) {
-                        try {
-                            val originalInput = currentInput
-                            val evalString = when (label) {
-                                "sin" -> "SIN($currentInput)"
-                                "cos" -> "COS($currentInput)"
-                                "tan" -> "TAN($currentInput)"
-                                "ln" -> "LOG($currentInput)"
-                                "log" -> "LOG10($currentInput)"
-                                "sqrt" -> "SQRT($currentInput)"
-                                "x^2" -> "($currentInput)^2"
-                                "%" -> "($currentInput)/100"
-                                else -> currentInput
-                            }
-                            val expression = Expression(evalString)
-                            val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(20, java.math.RoundingMode.HALF_UP)
-
-                            historyText = if (label == "x^2") "$originalInput^2 =" else "$label($originalInput) ="
-                            currentInput = roundedResult.stripTrailingZeros().toPlainString()
-                        } catch (_: Exception) {
-                            currentInput = errorText
-                        }
-                    }
-                }
-                "+/-" -> {
-                    if (currentInput.isEmpty()) {
-                        currentInput = "-"
-                    } else if (currentInput.startsWith("-")) {
-                        currentInput = currentInput.removePrefix("-")
-                    } else if (currentInput != "0") {
-                        currentInput = "-$currentInput"
-                    }
+                    isShowingResult = false
                 }
                 "C/CE" -> {
                     val currentTime = System.currentTimeMillis()
@@ -121,54 +62,190 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
                         if (currentInput.isNotEmpty()) currentInput = currentInput.dropLast(1)
                         lastCeClickTime = currentTime
                     }
+                    isShowingResult = false
+                }
+                "+", "-", "*", "/", "x^y" -> {
+                    isShowingResult = false
+                    val operator = if (label == "x^y") "^" else label
+                    if (currentInput.isNotEmpty()) {
+                        val endsWithOperator = currentInput.endsWith(" + ") ||
+                                currentInput.endsWith(" - ") ||
+                                currentInput.endsWith(" * ") ||
+                                currentInput.endsWith(" / ") ||
+                                currentInput.endsWith(" ^ ")
+                        if (currentInput.endsWith("(")) {
+                            if (operator == "-") {
+                                currentInput += "-"
+                            }
+                        }else if (endsWithOperator) {
+                            currentInput = currentInput.dropLast(3) + " $operator "
+                        }
+                        else {
+                            currentInput += " $operator "
+                        }
+                    }
+                }
+                "√" -> {
+                    isShowingResult = false
+                    if (currentInput == "0") {
+                        currentInput = "√("
+                    } else {
+                        currentInput += "√("
+                    }
+                }
+                "%" -> {
+                    if (currentInput.isNotEmpty() && !currentInput.endsWith(" " ) && !currentInput.endsWith("(")) {
+                        try {
+                            val parts = currentInput.split(" ")
+                            val lastPart = parts.last()
+                            val b = lastPart.toBigDecimal()
+                            var replacementValue = ""
+
+                            if (parts.size >= 3) {
+                                val operator = parts[parts.size - 2]
+
+                                if (operator == "+" || operator == "-") {
+                                    try {
+                                        val leftSideExpr = parts.dropLast(2).joinToString(" ").replace("√", "SQRT")
+                                        val a = Expression(leftSideExpr).evaluate().numberValue
+
+                                        val percentOfA = a.multiply(b).divide(java.math.BigDecimal("100"))
+                                        replacementValue = percentOfA.stripTrailingZeros().toPlainString()
+                                    } catch (_: Exception) {
+                                        replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
+                                    }
+                                } else {
+                                    replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
+                                }
+                            } else {
+                                replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
+                            }
+
+                            currentInput = currentInput.dropLast(lastPart.length) + replacementValue
+                            isShowingResult = false
+
+                        } catch (_: Exception) {
+                        }
+                    }
+                }
+                "sin", "cos", "tan", "ln", "log", "sqrt" -> {
+                    isShowingResult = false
+                    val funcName = when (label) {
+                        "ln" -> "LOG"
+                        "log" -> "LOG10"
+                        "sqrt" -> "SQRT"
+                        else -> label.uppercase()
+                    }
+                    if (currentInput == "0") {
+                        currentInput = "$funcName("
+                    }
+                    else {
+                        currentInput += "$funcName("
+                    }
+
+                }
+                "x^2" -> {
+                    isShowingResult = false
+                    if (currentInput.isNotEmpty()) {
+                        val lastChar = currentInput.last()
+                        if (lastChar.isDigit() || lastChar == ')') {
+                            currentInput += "^2"
+                        }
+                    }
                 }
                 "=" -> {
-                    if (historyText.endsWith("=")) historyText = ""
-                    if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
-                        val fullExpression = historyText + currentInput
+                    if (currentInput.isNotEmpty() && !isShowingResult) {
                         try {
-                            val expression = Expression(fullExpression)
-                            val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(20, java.math.RoundingMode.HALF_UP)
+                            val evalText = currentInput.replace("√", "SQRT")
+                            val result = Expression(evalText).evaluate().numberValue
+                            val roundedResult = result.setScale(12, java.math.RoundingMode.HALF_UP)
+                            historyText = "$currentInput = "
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
-                            historyText = ""
+                            isShowingResult = true
                         } catch (_: Exception) {
                             currentInput = errorText
                         }
                     }
                 }
-                "." -> if (!currentInput.contains(".")) {
-                    currentInput += if (currentInput.isEmpty() || currentInput == "-") {
-                        "0."
-                    } else {
-                        "."
+                "+/-" -> {
+                    isShowingResult = false
+                    if (currentInput.isEmpty()) {
+                        currentInput = "-"
+                    } else if (currentInput.startsWith("-")) {
+                        currentInput = currentInput.removePrefix("-")
+                    } else if (currentInput != "0") {
+                        currentInput = "-$currentInput"
+                    }
+                }
+                "." -> {
+                    val lastPart = currentInput.split(" ").last()
+                    if (!lastPart.contains(".")) {
+                        currentInput += if (currentInput.isEmpty() || currentInput.endsWith(" ")) "0." else "."
+                        isShowingResult = false
+                    }
+                }
+                "0" -> if (currentInput != "0") {
+                    currentInput += "0"
+                    isShowingResult = false
+                }
+                "00" -> {
+                    if (currentInput.isEmpty()) currentInput =
+                        "0" else if (currentInput != "0") currentInput += "00"
+                    isShowingResult = false
+                }
+                "(", ")" -> {
+                    isShowingResult = false
+                    if (currentInput == "0") {
+                        currentInput = label
+                    }
+                    else {
+                        currentInput += label
+
+                    }
+                }
+                else -> {
+                    if (isShowingResult) {
+                        currentInput = label
+                        historyText = ""
+                        isShowingResult = false
+                    }
+                    else {
+                        if (currentInput == "0") {
+                            currentInput = label
+                        } else {
+                            currentInput += label
+                        }
                     }
 
                 }
-                "0" -> if (currentInput != "0") currentInput += "0"
-                "00" -> if (currentInput.isEmpty()) currentInput = "0" else if (currentInput != "0") currentInput += "00"
-                else -> {
-                    if (historyText.endsWith("=")) {
-                        historyText = ""
-                        currentInput = ""
-                    }
-                    if (currentInput == "0") {
-                        currentInput = label
+            }
+            if (!isShowingResult && currentInput.isNotEmpty()) {
+                try {
+                    val cleanInput = if (currentInput.endsWith(" ")) currentInput.dropLast(3) else currentInput
+
+                    if (cleanInput.any { it in "+-*/√" }) {
+                        val evalText = cleanInput.replace("√", "SQRT")
+                        val previewResult = Expression(evalText).evaluate().numberValue
+                        val rounded = previewResult.setScale(12, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
+                        historyText = rounded
                     } else {
-                        currentInput += label
+                        historyText = ""
                     }
+                } catch (_: Exception) {
+                    historyText = ""
                 }
             }
+
         }
-    }
-    Column(
+ }
+ Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
             .padding(16.dp)
-    ) {
+ ) {
         if (isLandscape) {
-            val buttons = listOf("AC", "C/CE", "+/-", "7", "8", "9", "/", "sin", "cos", "tan", "4", "5", "6", "*", "ln", "log", "sqrt", "1", "2", "3", "-", "x^2", "x^y", "%", "0", ".", "=", "+")
+            val buttons = listOf("sin", "ln", "AC", "C/CE", "%", "/", "cos", "log", "7", "8", "9", "*", "tan", "sqrt", "4", "5", "6", "-", "x^2", "x^y", "1", "2", "3", "+", "(", ")", "+/-", "0", ".", "=")
             Row(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalAlignment = Alignment.CenterVertically
@@ -185,10 +262,10 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(2f)) {
-                CalculatorGrid(buttons, 7, handleButtonClick)
+                CalculatorGrid(buttons, 6, newHandleButtonClick)
             }
         } else {
-            val buttons = listOf("AC", "C/CE", "sin", "cos", "tan", "ln", "log", "sqrt", "%", "/", "x^2", "7", "8", "9", "*", "x^y", "4", "5", "6", "-", "+/-", "1", "2", "3", "+", "0", ".", "=")
+            val buttons = listOf("AC", "C/CE", "(", ")", "%", "x^y", "x^2", "sqrt", "+/-", "/", "sin", "7", "8", "9", "*", "cos", "4", "5", "6", "-", "tan", "1", "2", "3", "+", "ln", "log", "0", ".", "=")
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -204,9 +281,9 @@ fun AdvanceCalcScreen(navController: NavController, padding: PaddingValues) {
             ResultDisplay(currentInput, historyText, modifier = Modifier.weight(1f), false)
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(4f)) {
-                CalculatorGrid(buttons, 5, handleButtonClick)
+                CalculatorGrid(buttons, 5, newHandleButtonClick)
             }
         }
-    }
+ }
 
 }
