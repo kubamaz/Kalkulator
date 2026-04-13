@@ -37,50 +37,20 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
     var currentInput by rememberSaveable { mutableStateOf("") }
     var historyText by rememberSaveable { mutableStateOf("") }
     var lastCeClickTime by rememberSaveable { mutableLongStateOf(0L) }
-
+    var isShowingResult by rememberSaveable { mutableStateOf(false) }
     val errorText = stringResource(id = R.string.error)
-    val handleButtonClick = remember {
+
+    val newHandleButtonClick = remember {
         { label: String ->
             if (currentInput == errorText && label != "AC") {
                 currentInput = ""
                 historyText = ""
             }
             when (label) {
-
                 "AC" -> {
                     currentInput = ""
                     historyText = ""
-                }
-                "+", "-", "*", "/" -> {
-                    if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
-                        try {
-                            val fullExpression = historyText + currentInput
-                            val expression = Expression(fullExpression)
-                            val result = expression.evaluate().numberValue
-                            val roundedResult = result.setScale(12, java.math.RoundingMode.HALF_UP)
-                            val intermediateResult = roundedResult.stripTrailingZeros().toPlainString()
-
-                            historyText = "$intermediateResult $label "
-                            currentInput = ""
-                        } catch (_: Exception) {
-                            currentInput = errorText
-                            historyText = ""
-                        }
-                    } else if (currentInput.isNotEmpty()) {
-                        historyText = "$currentInput $label "
-                        currentInput = ""
-                    } else if (historyText.isNotEmpty()) {
-                        historyText = historyText.dropLast(3) + " $label "
-                    }
-                }
-                "+/-" -> {
-                    if (currentInput.isEmpty()) {
-                        currentInput = "-"
-                    } else if (currentInput.startsWith("-")) {
-                        currentInput = currentInput.removePrefix("-")
-                    } else if (currentInput != "0") {
-                        currentInput = "-$currentInput"
-                    }
+                    isShowingResult = false
                 }
                 "C/CE" -> {
                     val currentTime = System.currentTimeMillis()
@@ -91,39 +61,94 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         if (currentInput.isNotEmpty()) currentInput = currentInput.dropLast(1)
                         lastCeClickTime = currentTime
                     }
+                    isShowingResult = false
+                }
+                "+", "-", "*", "/" -> {
+                    isShowingResult = false
+                    if (currentInput.isNotEmpty()) {
+                        val endsWithOperator = currentInput.endsWith(" + ") ||
+                                currentInput.endsWith(" - ") ||
+                                currentInput.endsWith(" * ") ||
+                                currentInput.endsWith(" / ")
+                        if (endsWithOperator) {
+                            currentInput = currentInput.dropLast(3) + " $label "
+                        }
+                        else {
+                            currentInput += " $label "
+                        }
+                    }
                 }
                 "=" -> {
-                    if (currentInput.isNotEmpty() && historyText.isNotEmpty()) {
-                        val fullExpression = historyText + currentInput
+                    if (currentInput.isNotEmpty() && !isShowingResult) {
                         try {
-                            val expression = Expression(fullExpression)
-                            val result = expression.evaluate().numberValue
+                            val result = Expression(currentInput).evaluate().numberValue
                             val roundedResult = result.setScale(12, java.math.RoundingMode.HALF_UP)
+                            historyText = "$currentInput = "
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
-                            historyText = ""
+                            isShowingResult = true
                         } catch (_: Exception) {
                             currentInput = errorText
                         }
                     }
                 }
-                "." -> if (!currentInput.contains(".")) {
-                    currentInput += if (currentInput.isEmpty()) {
-                        "0."
-                    } else {
-                        "."
+                "+/-" -> {
+                    isShowingResult = false
+                    if (currentInput.isEmpty()) {
+                        currentInput = "-"
+                    } else if (currentInput.startsWith("-")) {
+                        currentInput = currentInput.removePrefix("-")
+                    } else if (currentInput != "0") {
+                        currentInput = "-$currentInput"
+                    }
+                }
+                "." -> {
+                    val lastPart = currentInput.split(" ").last()
+                    if (!lastPart.contains(".")) {
+                        currentInput += if (currentInput.isEmpty() || currentInput.endsWith(" ")) "0." else "."
+                        isShowingResult = false
+                    }
+                }
+                "0" -> if (currentInput != "0") {
+                    currentInput += "0"
+                    isShowingResult = false
+                }
+                "00" -> {
+                    if (currentInput.isEmpty()) currentInput =
+                        "0" else if (currentInput != "0") currentInput += "00"
+                    isShowingResult = false
+                }
+                else -> {
+                    if (isShowingResult) {
+                        currentInput = label
+                        historyText = ""
+                        isShowingResult = false
+                    }
+                    else {
+                        if (currentInput == "0") {
+                            currentInput = label
+                        } else {
+                            currentInput += label
+                        }
                     }
 
                 }
-                "0" -> if (currentInput != "0") currentInput += "0"
-                "00" -> if (currentInput.isEmpty()) currentInput = "0" else if (currentInput != "0") currentInput += "00"
-                else -> {
-                    if (currentInput == "0") {
-                        currentInput = label
+            }
+            if (!isShowingResult && currentInput.isNotEmpty()) {
+                try {
+                    val cleanInput = if (currentInput.endsWith(" ")) currentInput.dropLast(3) else currentInput
+
+                    if (cleanInput.any { it in "+-*/" }) {
+                        val previewResult = Expression(cleanInput).evaluate().numberValue
+                        val rounded = previewResult.setScale(12, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
+                        historyText = rounded
                     } else {
-                        currentInput += label
+                        historyText = ""
                     }
+                } catch (_: Exception) {
+                    historyText = ""
                 }
             }
+
         }
     }
     Column(
@@ -150,7 +175,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(2f)) {
-                CalculatorGrid(buttons, columns = 5, onButtonClick = handleButtonClick)
+                CalculatorGrid(buttons, columns = 5, onButtonClick = newHandleButtonClick)
             }
         } else {
             val buttons = listOf("AC", "C/CE", "+/-", "/", "7", "8", "9", "*", "4", "5", "6", "-", "1", "2", "3", "+", "0","00", ".", "=")
@@ -169,7 +194,7 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
             ResultDisplay(currentInput, historyText, modifier = Modifier.weight(1f), false)
             Spacer(modifier = Modifier.height(16.dp)) 
             Box(modifier = Modifier.weight(4f)) {
-                CalculatorGrid(buttons, columns= 4, handleButtonClick)
+                CalculatorGrid(buttons, columns= 4, newHandleButtonClick)
             }
         }
     }
