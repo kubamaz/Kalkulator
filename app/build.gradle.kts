@@ -2,7 +2,31 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+fun getVersionNameFromGit(): String {
+    return try {
+        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
+            .redirectErrorStream(true)
+            .start()
+        val result = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        if (result.isEmpty() || result.contains("fatal")) "1.0-dev" else result.removePrefix("v")
+    } catch (_: Exception) {
+        "1.0-dev"
+    }
+}
 
+fun getVersionCodeFromGit(): Int {
+    return try {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .redirectErrorStream(true)
+            .start()
+        val result = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        if (result.isEmpty() || result.contains("fatal")) 1 else result.toInt()
+    } catch (_: Exception) {
+        1
+    }
+}
 android {
     namespace = "com.example.myapplication"
     compileSdk {
@@ -15,8 +39,8 @@ android {
         applicationId = "com.example.myapplication"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = getVersionCodeFromGit()
+        versionName = getVersionNameFromGit()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
