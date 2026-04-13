@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -70,7 +71,11 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                                 currentInput.endsWith(" - ") ||
                                 currentInput.endsWith(" * ") ||
                                 currentInput.endsWith(" / ")
-                        if (endsWithOperator) {
+                        if (currentInput.endsWith("(")) {
+                            if (label == "-") {
+                                currentInput += "-"
+                            }
+                        }else if (endsWithOperator) {
                             currentInput = currentInput.dropLast(3) + " $label "
                         }
                         else {
@@ -78,10 +83,54 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         }
                     }
                 }
+                "√" -> {
+                    isShowingResult = false
+                    if (currentInput == "0") {
+                        currentInput = "√("
+                    } else {
+                        currentInput += "√("
+                    }
+                }
+                "%" -> {
+                    if (currentInput.isNotEmpty() && !currentInput.endsWith(" " ) && !currentInput.endsWith("(")) {
+                        try {
+                            val parts = currentInput.split(" ")
+                            val lastPart = parts.last()
+                            val b = lastPart.toBigDecimal()
+                            var replacementValue = ""
+
+                            if (parts.size >= 3) {
+                                val operator = parts[parts.size - 2]
+
+                                if (operator == "+" || operator == "-") {
+                                    try {
+                                        val leftSideExpr = parts.dropLast(2).joinToString(" ").replace("√", "SQRT")
+                                        val a = Expression(leftSideExpr).evaluate().numberValue
+
+                                        val percentOfA = a.multiply(b).divide(java.math.BigDecimal("100"))
+                                        replacementValue = percentOfA.stripTrailingZeros().toPlainString()
+                                    } catch (e: Exception) {
+                                        replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
+                                    }
+                                } else {
+                                    replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
+                                }
+                            } else {
+                                replacementValue = b.divide(java.math.BigDecimal("100")).stripTrailingZeros().toPlainString()
+                            }
+
+                            currentInput = currentInput.dropLast(lastPart.length) + replacementValue
+                            isShowingResult = false
+
+                        } catch (_: Exception) {
+                        }
+                    }
+                }
                 "=" -> {
                     if (currentInput.isNotEmpty() && !isShowingResult) {
                         try {
-                            val result = Expression(currentInput).evaluate().numberValue
+                            val evalText = currentInput.replace("√", "SQRT")
+                            val result = Expression(evalText).evaluate().numberValue
                             val roundedResult = result.setScale(12, java.math.RoundingMode.HALF_UP)
                             historyText = "$currentInput = "
                             currentInput = roundedResult.stripTrailingZeros().toPlainString()
@@ -117,6 +166,16 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                         "0" else if (currentInput != "0") currentInput += "00"
                     isShowingResult = false
                 }
+                "(", ")" -> {
+                    isShowingResult = false
+                    if (currentInput == "0") {
+                        currentInput = label
+                    }
+                    else {
+                        currentInput += label
+
+                    }
+                }
                 else -> {
                     if (isShowingResult) {
                         currentInput = label
@@ -137,8 +196,9 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
                 try {
                     val cleanInput = if (currentInput.endsWith(" ")) currentInput.dropLast(3) else currentInput
 
-                    if (cleanInput.any { it in "+-*/" }) {
-                        val previewResult = Expression(cleanInput).evaluate().numberValue
+                    if (cleanInput.any { it in "+-*/√" }) {
+                        val evalText = cleanInput.replace("√", "SQRT")
+                        val previewResult = Expression(evalText).evaluate().numberValue
                         val rounded = previewResult.setScale(12, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
                         historyText = rounded
                     } else {
@@ -158,7 +218,12 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
             .padding(16.dp)
     ) {
         if (isLandscape) {
-            val buttons = listOf("7", "8", "9", "C/CE", "AC", "4", "5", "6", "*", "/", "1", "2", "3", "+", "-", "0", "00", ".", "+/-", "=")
+            val buttons = listOf(
+                "AC", "C/CE", "7", "8", "9", "/",
+                "(", ")", "4", "5", "6", "*",
+                "√", "%", "1", "2", "3", "-",
+                "+/-", "00", "0", ".", "=", "+"
+            )
             Row(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalAlignment = Alignment.CenterVertically
@@ -175,10 +240,17 @@ fun SimpleCalcScreen(navController: NavController, padding: PaddingValues) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.weight(2f)) {
-                CalculatorGrid(buttons, columns = 5, onButtonClick = newHandleButtonClick)
+                CalculatorGrid(buttons, columns = 6, onButtonClick = newHandleButtonClick)
             }
         } else {
-            val buttons = listOf("AC", "C/CE", "+/-", "/", "7", "8", "9", "*", "4", "5", "6", "-", "1", "2", "3", "+", "0","00", ".", "=")
+            val buttons = listOf(
+                "AC", "C/CE", "(", ")",
+                "√", "%", "+/-", "/",
+                "7", "8", "9", "*",
+                "4", "5", "6", "-",
+                "1", "2", "3", "+",
+                "00", "0", ".", "="
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
