@@ -1,31 +1,45 @@
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.provider.ListProperty
+import java.io.ByteArrayOutputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
-fun getVersionNameFromGit(): String {
-    return try {
-        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
-            .redirectErrorStream(true)
-            .start()
-        val result = process.inputStream.bufferedReader().readText().trim()
-        process.waitFor()
-        if (result.isEmpty() || result.contains("fatal")) "1.0-dev" else result.removePrefix("v")
-    } catch (_: Exception) {
-        "1.0-dev"
+
+
+interface GitParameters : ValueSourceParameters {
+    val arguments: ListProperty<String>
+}
+
+abstract class GitValueSource : ValueSource<String, GitParameters> {
+    override fun obtain(): String? {
+        return try {
+            val args = parameters.arguments.get()
+            // ProcessBuilder jest bezpieczny i stabilny
+            val process = ProcessBuilder(args).start()
+            val output = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+            if (process.exitValue() == 0 && output.isNotEmpty()) output else null
+        } catch (e: Exception) {
+            null
+        }
     }
 }
 
-fun getVersionCodeFromGit(): Int {
-    return try {
-        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
-            .redirectErrorStream(true)
-            .start()
-        val result = process.inputStream.bufferedReader().readText().trim()
-        process.waitFor()
-        if (result.isEmpty() || result.contains("fatal")) 1 else result.toInt()
-    } catch (_: Exception) {
-        1
-    }
+// 3. Funkcje wywołujące (pamiętaj o przekazaniu project)
+fun getGitVersionName(project: Project): String {
+    return project.providers.of(GitValueSource::class.java) {
+        parameters.arguments.set(listOf("git", "describe", "--tags", "--abbrev=0"))
+    }.getOrNull()?.removePrefix("v") ?: "1.0-dev"
+}
+
+fun getGitVersionCode(project: Project): Int {
+    val count = project.providers.of(GitValueSource::class.java) {
+        parameters.arguments.set(listOf("git", "rev-list", "--count", "HEAD"))
+    }.getOrNull()
+    return count?.toInt() ?: 1
 }
 android {
     namespace = "com.example.myapplication"
@@ -39,8 +53,8 @@ android {
         applicationId = "com.example.myapplication"
         minSdk = 29
         targetSdk = 36
-        versionCode = getVersionCodeFromGit()
-        versionName = getVersionNameFromGit()
+        versionCode = getGitVersionCode(project)
+        versionName = getGitVersionName(project)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
